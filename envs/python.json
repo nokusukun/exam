@@ -1,0 +1,5 @@
+{
+  "name": "python3.7",
+  "pattern_linux": ["python3.7", "{source} {args}"],
+  "pattern_default": ["py", "{source} {args}"]
+}
