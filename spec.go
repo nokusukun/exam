@@ -26,13 +26,27 @@ func (s *Spec) Marshal() ([]byte, error) {
 
 type Spec struct {
 	Manager *Manager
+	// Environment to use
+	Env string `json:"env"`
 
-	Env     string  `json:"env"`
-	Source  string  `json:"source"`
-	Entry   string  `json:"entry"`
-	Inputs  []Input `json:"inputs"`
-	Passes  int64   `json:"passes"`
-	Timeout int64   `json:"timeout"`
+	// Source 'master' code to run the values
+	Source string `json:"source"`
+
+	// Entry type defines what sort of application it is
+	// argv - Values gets passed through the argument variables
+	// console - Gets passed through STDIN
+	// http - Values are passed through as rest APIs
+	Entry string `json:"entry"`
+
+	// Inputs determine the values to be passed on the source/test codes
+	// They can be static values or generated randomly
+	Inputs []Input `json:"inputs"`
+
+	// Determines how many passes to run the program
+	Passes int64 `json:"passes"`
+
+	// Timeout in milliseconds, stops the code from running for more than x number of times.
+	Timeout int64 `json:"timeout"`
 
 	HTTPEndpoints []HTTPEndpoint `json:"endpoints"`
 }
@@ -54,8 +68,6 @@ type Input struct {
 	RangeEnd   int `json:"rangeEnd,omitempty"`
 
 	RangeList []string `json:"rangeList,omitempty"`
-
-	//
 }
 
 func (i *Input) Generate() (string, error) {
