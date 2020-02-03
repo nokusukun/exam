@@ -33,21 +33,41 @@ type Spec struct {
 	Inputs  []Input `json:"inputs"`
 	Passes  int64   `json:"passes"`
 	Timeout int64   `json:"timeout"`
+
+	HTTPEndpoints []HTTPEndpoint `json:"endpoints"`
+}
+
+type HTTPEndpoint struct {
+	Endpoint  string           `json:"endpoint"`
+	Body      interface{}      `json:"body"`
+	Method    string           `json:"method"`
+	Arguments map[string]Input `json:"arguments"`
 }
 
 type Input struct {
-	Type       string   `json:"type"`
-	RangeStart int      `json:"rangeStart,omitempty"`
-	RangeEnd   int      `json:"rangeEnd,omitempty"`
-	RangeList  []string `json:"rangeList,omitempty"`
+	Type string `json:"type"`
+	// Static value, ignores Range fields
+	Value string `json:"value,omitempty"`
+
+	// int Only
+	RangeStart int `json:"rangeStart,omitempty"`
+	RangeEnd   int `json:"rangeEnd,omitempty"`
+
+	RangeList []string `json:"rangeList,omitempty"`
+
+	//
 }
 
 func (i *Input) Generate() (string, error) {
+	if i.Value != "" {
+		return i.Value, nil
+	}
+
 	switch i.Type {
 	case "int":
-		rand.Seed(time.Now().UnixNano())
 		min := i.RangeStart
 		max := i.RangeEnd
+		rand.Seed(time.Now().UnixNano() + int64(min) + int64(max))
 		return fmt.Sprintf("%v", rand.Intn(max-min+1)+min), nil
 	case "string":
 		return i.RangeList[rand.Intn(len(i.RangeList))], nil
@@ -64,7 +84,7 @@ type Test struct {
 
 // TODO: Integrate execConsole (STDIN/STDOUT) execution for the spec
 
-func (s *Spec) execArgv(testPath string) (bool, Test) {
+func (s *Spec) execArgv(testPath string) Test {
 	src := s.Source
 	var args []string
 
@@ -109,29 +129,27 @@ func (s *Spec) execArgv(testPath string) (bool, Test) {
 		panic(err)
 	}
 
-	return resultSrc == resultTest, Test{
-		Passed:       resultSrc == resultTest,
+	return Test{
+		Passed:       string(srcOut) == string(resOut),
 		Inputs:       args,
 		SourceOutput: string(srcOut),
 		TestOutput:   string(resOut),
 	}
 }
 
-func (s *Spec) ExecuteTest(testPath string) (bool, []Test) {
+func (s *Spec) ExecuteTest(testPath string) []Test {
 	// success := false
 	var tests []Test
-	var success bool
 
 	switch s.Entry {
 	case "argv":
 		for i := int64(0); i < s.Passes; i++ {
-			s, test := s.execArgv(testPath)
-			success = s
+			test := s.execArgv(testPath)
 			tests = append(tests, test)
 		}
 	default:
 		panic(fmt.Errorf("cannot run test entry through: '%v'", s.Entry))
 	}
 
-	return success, tests
+	return tests
 }

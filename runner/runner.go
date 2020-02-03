@@ -13,10 +13,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	success, result := spec.ExecuteTest("tests/01_test.js")
+	result := spec.ExecuteTest("tests/01_test.js")
 	rb, err := json.MarshalIndent(result, "", "    ")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(success, string(rb))
+	fmt.Println(string(rb))
 }
