@@ -1,4 +1,4 @@
-# Kingsland Automated Exam Checker
+# Automated Exam Checker
 
 ## Dependencies
 
