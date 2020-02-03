@@ -1,18 +1,33 @@
 {
-  "env": "node",
-  "source": "exams/01.js",
-  "entry": "argv",
-  "inputs": [
-    {
-      "type": "int",
-      "rangeStart": 0,
-      "rangeEnd": 100
-    },
-    {
-      "type": "string",
-      "rangeList": ["Rave", "Sian", "Kim", "Von"]
-    }
-  ],
-  "timeout": 1000,
-  "passes": 2
-}
+    "env": "node",
+    "source": "exams/01.js",
+    "entry": "argv",
+    "inputs": [
+      {
+        "type": "int",
+        "rangeStart": 0,
+        "rangeEnd": 100
+      },
+      {
+        "type": "int",
+        "rangeStart": 0,
+        "rangeEnd": 100
+      },
+      {
+        "type": "int",
+        "rangeStart": 0,
+        "rangeEnd": 100
+      },
+      {
+        "type": "int",
+        "rangeStart": 0,
+        "rangeEnd": 100
+      },
+      {
+        "type": "int",
+        "rangeStart": 0,
+        "rangeEnd": 100
+      }
+    ],
+    "passes": 10
+  }
