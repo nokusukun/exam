@@ -2,7 +2,7 @@
     "env": "node",
     "source": "exams/01.js",
     "entry": "argv",
-    "inputs": [
+    "input": [
       {
         "type": "int",
         "rangeStart": 0,

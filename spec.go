@@ -52,10 +52,11 @@ type Spec struct {
 }
 
 type HTTPEndpoint struct {
-	Endpoint  string           `json:"endpoint"`
-	Body      interface{}      `json:"body"`
-	Method    string           `json:"method"`
-	Arguments map[string]Input `json:"arguments"`
+	Endpoint    string      `json:"endpoint"`
+	Body        interface{} `json:"body"`
+	Method      string      `json:"method"`
+	RequestBody string      `json:"requestBody"`
+	Expected    string      `json:"expected"`
 }
 
 type Input struct {
@@ -149,16 +150,44 @@ func (s *Spec) execArgv(testPath string) Test {
 	}
 }
 
+func (s *Spec) execHTTP() []Test {
+	var tests []Test
+	for _, i := range s.HTTPEndpoints {
+		var tmpTest Test
+		var actual string
+		var url = "http://" + s.Source + i.Endpoint
+		if i.Method == "GET" {
+			actual = SendGet(url)
+		} else if i.Method == "POST" {
+			actual = SendPost(url, i.RequestBody)
+		} else {
+			panic("Unknown HTTP Method: " + i.Method)
+		}
+		tmpTest.Passed = actual == i.Expected
+		tmpTest.Inputs = []string{url, i.RequestBody}
+		tmpTest.SourceOutput = i.Expected
+		tmpTest.TestOutput = actual
+		tests = append(tests, tmpTest)
+	}
+
+	return tests
+}
+
+// ExecuteTest runs the requested tests depending on test type
 func (s *Spec) ExecuteTest(testPath string) []Test {
-	// success := false
 	var tests []Test
 
 	switch s.Entry {
 	case "argv":
+		if testPath == "" {
+			panic("Test path is empty")
+		}
 		for i := int64(0); i < s.Passes; i++ {
 			test := s.execArgv(testPath)
 			tests = append(tests, test)
 		}
+	case "http":
+		tests = s.execHTTP()
 	default:
 		panic(fmt.Errorf("cannot run test entry through: '%v'", s.Entry))
 	}
