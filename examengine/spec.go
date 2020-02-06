@@ -4,7 +4,7 @@
 //    spec, err := UnmarshalSpec(bytes)
 //    bytes, err = spec.Marshal()
 
-package exam
+package examengine
 
 import (
 	"context"

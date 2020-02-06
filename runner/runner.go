@@ -1,37 +1,36 @@
-package main
+package runner
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
 
-	exam "github.com/nokusukun/exam"
+	examengine "github.com/nokusukun/exam/examengine"
 )
 
 var specFile string
 var testFile string
+var debugEnabled bool
 
 func init() {
 	flag.StringVar(&specFile, "specFile", "", "Specification Detail Path")
 	flag.StringVar(&testFile, "testFile", "", "Homework Submission")
+	flag.BoolVar(&debugEnabled, "debug", false, "Enable debugging logs")
 	flag.Parse()
-	if specFile == "" {
+
+	examengine.IsDebugEnabled = debugEnabled
+
+	if debugEnabled {
+		examengine.Log("Debug enabled")
+	}
+
+	if specFile == "" || testFile == "" {
 		flag.Usage()
 		os.Exit(1)
 	}
 }
 
 func main() {
-	manager := exam.InitManager("../")
-	spec, err := manager.LoadSpec(specFile)
-	if err != nil {
-		panic(err)
-	}
-	result := spec.ExecuteTest(testFile)
-	rb, err := json.MarshalIndent(result, "", "    ")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(rb))
+	output := examengine.RunSubmission(specFile, testFile)
+	fmt.Println(output)
 }

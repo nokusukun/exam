@@ -1,9 +1,8 @@
-package exam
+package examengine
 
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
@@ -24,7 +23,7 @@ type EnvLoader struct {
 
 func (el *EnvLoader) Run(context context.Context, source string, args []string) (cmd *exec.Cmd, err error) {
 	var pattern []string
-	fmt.Println("Debug: OS:", runtime.GOOS)
+	Log("Debug: OS:", runtime.GOOS)
 	switch runtime.GOOS {
 	case "linux":
 		pattern = el.PatternLinux
@@ -38,13 +37,13 @@ func (el *EnvLoader) Run(context context.Context, source string, args []string) 
 		pattern = el.PatternDefault
 	}
 
-	fmt.Println("Debug: Pattern:", pattern)
+	Log("Debug: Pattern:", pattern)
 	srcRuntime := pattern[0]
 	comArgs := strings.Join(pattern[1:], " ")
 	comArgs = strings.ReplaceAll(comArgs, "{source}", source)
 	comArgs = strings.ReplaceAll(comArgs, "{args}", strings.Join(args, " "))
 
-	fmt.Println("Debug: Execute:", srcRuntime, comArgs)
+	Log("Debug: Execute:", srcRuntime, comArgs)
 
 	// TODO: Change exec.Command to utilize exec.CommandContext and return the unran *Cmd
 	commandArgs, err := shlex.Split(comArgs)
@@ -60,7 +59,7 @@ type EnvManager struct {
 }
 
 func InitializeEnvMan(path string) (*EnvManager, error) {
-	fmt.Println("Looking for environments on:", filepath.Join(path, "*.json"))
+	Log("Looking for environments on:", filepath.Join(path, "*.json"))
 	envPath, err := filepath.Glob(filepath.Join(path, "*.json"))
 	if err != nil {
 		return nil, err
@@ -80,7 +79,7 @@ func InitializeEnvMan(path string) (*EnvManager, error) {
 			return nil, err
 		}
 
-		fmt.Printf("Loaded Enviroment '%v'\n", envl.Name)
+		Log("Loaded Enviroment '%v'\n", envl.Name)
 		em.Environments[envl.Name] = envl
 	}
 
