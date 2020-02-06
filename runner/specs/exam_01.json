@@ -2,32 +2,18 @@
     "env": "node",
     "source": "exams/01.js",
     "entry": "argv",
-    "input": [
+    "data": [
       {
-        "type": "int",
-        "rangeStart": 0,
-        "rangeEnd": 100
+        "arguments": ["1","2","3","4","5"],
+        "expected": "304.85"
       },
       {
-        "type": "int",
-        "rangeStart": 0,
-        "rangeEnd": 100
+        "arguments": ["6","7","8","9","10"],
+        "expected": "16324.35"
       },
       {
-        "type": "int",
-        "rangeStart": 0,
-        "rangeEnd": 100
-      },
-      {
-        "type": "int",
-        "rangeStart": 0,
-        "rangeEnd": 100
-      },
-      {
-        "type": "int",
-        "rangeStart": 0,
-        "rangeEnd": 100
+        "arguments": ["20", "8", "14", "30", "16"],
+        "expected": "119728.00"
       }
-    ],
-    "passes": 10
+    ]
   }

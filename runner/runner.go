@@ -13,7 +13,7 @@ var specFile string
 var testFile string
 
 func init() {
-	flag.StringVar(&specFile, "specFile", "", "Specification Path")
+	flag.StringVar(&specFile, "specFile", "", "Specification Detail Path")
 	flag.StringVar(&testFile, "testFile", "", "Homework Submission")
 	flag.Parse()
 	if specFile == "" {

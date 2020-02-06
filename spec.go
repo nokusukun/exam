@@ -10,7 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -29,7 +29,7 @@ type Spec struct {
 	// Environment to use
 	Env string `json:"env"`
 
-	// Source 'master' code to run the values
+	// HTTP Only: Source 'master' code to run the values
 	Source string `json:"source"`
 
 	// Entry type defines what sort of application it is
@@ -40,7 +40,7 @@ type Spec struct {
 
 	// Inputs determine the values to be passed on the source/test codes
 	// They can be static values or generated randomly
-	Input []Input `json:"input"`
+	Data []Input `json:"data"`
 
 	// Determines how many passes to run the program
 	Passes int64 `json:"passes"`
@@ -48,6 +48,7 @@ type Spec struct {
 	// Timeout in milliseconds, stops the code from running for more than x number of times.
 	Timeout int64 `json:"timeout"`
 
+	// HTTP Only: Endpoints to test
 	HTTPEndpoints []HTTPEndpoint `json:"endpoints"`
 }
 
@@ -60,32 +61,8 @@ type HTTPEndpoint struct {
 }
 
 type Input struct {
-	Type string `json:"type"`
-	// Static value, ignores Range fields
-	Value string `json:"value,omitempty"`
-
-	// int Only
-	RangeStart int `json:"rangeStart,omitempty"`
-	RangeEnd   int `json:"rangeEnd,omitempty"`
-
-	RangeList []string `json:"rangeList,omitempty"`
-}
-
-func (i *Input) Generate() (string, error) {
-	if i.Value != "" {
-		return i.Value, nil
-	}
-
-	switch i.Type {
-	case "int":
-		min := i.RangeStart
-		max := i.RangeEnd
-		rand.Seed(time.Now().UnixNano() + int64(min) + int64(max))
-		return fmt.Sprintf("%v", rand.Intn(max-min+1)+min), nil
-	case "string":
-		return i.RangeList[rand.Intn(len(i.RangeList))], nil
-	}
-	return "", fmt.Errorf("cannot generate values for type: '%v'", i.Type)
+	Arguments []string `json:"arguments"`
+	Expected  string   `json:"expected"`
 }
 
 type Test struct {
@@ -95,23 +72,10 @@ type Test struct {
 	TestOutput   string   `json:"test_output"`
 }
 
-// TODO: Integrate execConsole (STDIN/STDOUT) execution for the spec
-
-func (s *Spec) execArgv(testPath string) Test {
-	src := s.Source
-	var args []string
-
-	for _, i := range s.Input {
-		v, err := i.Generate()
-		if err != nil {
-			panic(err)
-		}
-		args = append(args, v)
-	}
-	fmt.Printf("Running spec '%v' with args '%v'\n", src, args)
+func (s *Spec) execArgv(testPath string) []Test {
 	env, found := s.Manager.env.Environments[s.Env]
 	if !found {
-		panic(fmt.Errorf("enviroment '%v' not found for spec '%v'", s.Env, src))
+		panic(fmt.Errorf("enviroment '%v' not found for spec '%v'", s.Env))
 	}
 
 	var timeout int64 = 1000
@@ -122,32 +86,33 @@ func (s *Spec) execArgv(testPath string) Test {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(timeout))
 	defer cancel()
 
-	resultSrc, err := env.Run(ctx, src, args)
-	if err != nil {
-		panic(err)
+	var tests []Test
+
+	for _, i := range s.Data {
+		var test Test
+		var args = i.Arguments
+
+		resultTest, err := env.Run(ctx, testPath, args)
+		if err != nil {
+			panic(err)
+		}
+
+		resOut, err := resultTest.CombinedOutput()
+		if err != nil {
+			panic(err)
+		}
+
+		var normalizedTestOutput = strings.TrimSpace(string(resOut))
+
+		test.Passed = string(i.Expected) == normalizedTestOutput
+		test.Inputs = args
+		test.SourceOutput = string(i.Expected)
+		test.TestOutput = normalizedTestOutput
+
+		tests = append(tests, test)
 	}
 
-	srcOut, err := resultSrc.CombinedOutput()
-	if err != nil {
-		panic(err)
-	}
-
-	resultTest, err := env.Run(ctx, testPath, args)
-	if err != nil {
-		panic(err)
-	}
-
-	resOut, err := resultTest.CombinedOutput()
-	if err != nil {
-		panic(err)
-	}
-
-	return Test{
-		Passed:       string(srcOut) == string(resOut),
-		Inputs:       args,
-		SourceOutput: string(srcOut),
-		TestOutput:   string(resOut),
-	}
+	return tests
 }
 
 func (s *Spec) execHTTP() []Test {
@@ -173,7 +138,7 @@ func (s *Spec) execHTTP() []Test {
 	return tests
 }
 
-// ExecuteTest runs the requested tests depending on test type
+// ExecuteTest runs the requested tests depending on test type (argv || http)
 func (s *Spec) ExecuteTest(testPath string) []Test {
 	var tests []Test
 
@@ -182,10 +147,7 @@ func (s *Spec) ExecuteTest(testPath string) []Test {
 		if testPath == "" {
 			panic("Test path is empty")
 		}
-		for i := int64(0); i < s.Passes; i++ {
-			test := s.execArgv(testPath)
-			tests = append(tests, test)
-		}
+		tests = s.execArgv(testPath)
 	case "http":
 		tests = s.execHTTP()
 	default:
