@@ -66,10 +66,10 @@ type Input struct {
 }
 
 type Test struct {
-	Passed       bool     `json:"passed"`
-	Inputs       []string `json:"inputs"`
-	SourceOutput string   `json:"src_output"`
-	TestOutput   string   `json:"test_output"`
+	Passed         bool     `json:"passed"`
+	Inputs         []string `json:"inputs"`
+	ExpectedOutput string   `json:"expectedOutput"`
+	ActualOutput   string   `json:"actualOutput"`
 }
 
 func (s *Spec) execArgv(testPath string) []Test {
@@ -106,8 +106,8 @@ func (s *Spec) execArgv(testPath string) []Test {
 
 		test.Passed = string(i.Expected) == normalizedTestOutput
 		test.Inputs = args
-		test.SourceOutput = string(i.Expected)
-		test.TestOutput = normalizedTestOutput
+		test.ExpectedOutput = string(i.Expected)
+		test.ActualOutput = normalizedTestOutput
 
 		tests = append(tests, test)
 	}
@@ -130,8 +130,8 @@ func (s *Spec) execHTTP() []Test {
 		}
 		tmpTest.Passed = actual == i.Expected
 		tmpTest.Inputs = []string{url, i.RequestBody}
-		tmpTest.SourceOutput = i.Expected
-		tmpTest.TestOutput = actual
+		tmpTest.ExpectedOutput = i.Expected
+		tmpTest.ActualOutput = actual
 		tests = append(tests, tmpTest)
 	}
 

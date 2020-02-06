@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -16,17 +17,24 @@ type Submission struct {
 	ActivityID  string `json:"activityID"`
 }
 
+func setupResponse(w http.ResponseWriter) {
+	(w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 func Hello(w http.ResponseWriter, req *http.Request) {
+	setupResponse(w)
 	fmt.Fprintf(w, "Sanity Check")
 }
 
 func SubmitExam(w http.ResponseWriter, req *http.Request) {
+	setupResponse(w)
 	decoder := json.NewDecoder(req.Body)
 
 	var submission Submission
 	err := decoder.Decode(&submission)
 	if err != nil {
-		panic(err)
+		fmt.Println(err, "JSON Decode", req.Body)
+		return
 	}
 
 	var fileID = submission.SubmitterID + "-" + submission.ActivityID
@@ -36,7 +44,8 @@ func SubmitExam(w http.ResponseWriter, req *http.Request) {
 	file, err := os.Create(filePath)
 
 	if err != nil {
-		panic(err)
+		fmt.Println(err, "File Creation")
+		return
 	}
 	defer file.Close()
 
@@ -44,7 +53,8 @@ func SubmitExam(w http.ResponseWriter, req *http.Request) {
 	fileSize, err := writer.WriteString(submission.Code)
 
 	if err != nil {
-		panic(err)
+		fmt.Println(err, "File Write")
+		return
 	}
 
 	fmt.Printf(fileID+" written. (%d) bytes.\n", fileSize)
@@ -52,4 +62,13 @@ func SubmitExam(w http.ResponseWriter, req *http.Request) {
 
 	output := examengine.RunSubmission(specPath, filePath)
 	fmt.Fprintf(w, output)
+}
+
+func GetActivities(w http.ResponseWriter, req *http.Request) {
+	setupResponse(w)
+	file, err := ioutil.ReadFile("./server/activities.json")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprintf(w, string(file))
 }
