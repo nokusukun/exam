@@ -21,11 +21,6 @@ func setupResponse(w http.ResponseWriter) {
 	(w).Header().Set("Access-Control-Allow-Origin", "*")
 }
 
-func Hello(w http.ResponseWriter, req *http.Request) {
-	setupResponse(w)
-	fmt.Fprintf(w, "Sanity Check")
-}
-
 func SubmitExam(w http.ResponseWriter, req *http.Request) {
 	setupResponse(w)
 	decoder := json.NewDecoder(req.Body)

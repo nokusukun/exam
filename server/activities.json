@@ -1,6 +1,10 @@
 [
     {
-        "id": "0-BN-ACT-22",
-        "description": "Lorem Ipsum"
+        "id": "ALCOHOL-MARKET-0-BN",
+        "description": "Alcohol Market"
+    },
+    {
+        "id": "CHARITY-CAMPAIGN-0-BN",
+        "description": "Charity Campaign"
     }
 ]

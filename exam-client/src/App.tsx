@@ -17,6 +17,7 @@ import {
   Select,
   MenuItem
 } from "@material-ui/core";
+import SampleCode from "./modals/SampleCode";
 
 interface Activity {
   id: string;
@@ -40,6 +41,8 @@ const App = () => {
   const [code, setCode] = useState("");
   const [output, setOutput] = useState([] as Output[]);
 
+  const apiRoute = process.env.NODE_ENV === 'development' ? 'http://localhost:8888' : ''
+
   useEffect(() => {
     if (labelRef.current) {
       setLabelWidth(labelRef.current.offsetWidth);
@@ -47,7 +50,7 @@ const App = () => {
 
     (async () => {
       const activityRequest = await Axios.get(
-        "http://localhost:8888/activities"
+        `${apiRoute}/activities`
       );
       console.log(activityRequest.data);
       setActivities(activityRequest.data);
@@ -62,7 +65,7 @@ const App = () => {
     });
 
     const codeSubmitRequest = await Axios.post(
-      "http://localhost:8888/exam/submit",
+      `${apiRoute}/exam/submit`,
       body
     );
     setOutput(codeSubmitRequest.data as Output[]);
@@ -103,8 +106,16 @@ const App = () => {
     });
   };
 
+  const [open, setOpen] = React.useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
   return (
     <div className="App">
+      <SampleCode open={open} />
+
       <Container style={{ marginTop: "10px" }}>
         <Grid container spacing={3}>
           <Grid item xs={6}>
@@ -144,6 +155,14 @@ const App = () => {
                   setCode(evt.target.value);
                 }}
               />
+              <Button
+                variant="outlined"
+                color="default"
+                style={{ marginTop: "10px", marginRight: "5px" }}
+                onClick={() => handleClickOpen()}
+              >
+                Sample
+              </Button>
               <Button
                 variant="outlined"
                 color="primary"

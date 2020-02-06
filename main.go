@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/hello", server.Hello)
+	http.Handle("/", http.FileServer(http.Dir("./exam-client/build")))
 	http.HandleFunc("/exam/submit", server.SubmitExam)
 	http.HandleFunc("/activities", server.GetActivities)
 
