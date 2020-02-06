@@ -40,7 +40,7 @@ type Spec struct {
 
 	// Inputs determine the values to be passed on the source/test codes
 	// They can be static values or generated randomly
-	Inputs []Input `json:"inputs"`
+	Input []Input `json:"input"`
 
 	// Determines how many passes to run the program
 	Passes int64 `json:"passes"`
@@ -101,7 +101,7 @@ func (s *Spec) execArgv(testPath string) Test {
 	src := s.Source
 	var args []string
 
-	for _, i := range s.Inputs {
+	for _, i := range s.Input {
 		v, err := i.Generate()
 		if err != nil {
 			panic(err)
